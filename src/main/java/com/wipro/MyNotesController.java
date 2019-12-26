@@ -3,7 +3,6 @@ package com.wipro;
 import com.wipro.domain.Note;
 import com.wipro.exception.NoteNotFoundException;
 import com.wipro.repository.NotesRepository;
-import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,8 +76,19 @@ public class MyNotesController {
             @ApiResponse(code = 400, message = "Invalid input"),
             @ApiResponse(code = 404, message = "Note not found")})
     public Note editNote(@PathVariable("id") Long id, @RequestBody String note) {
-        Note newNote = new Note(note);
-        newNote.setId(id);
-        return repository.save(newNote);
+        try {
+            Note editedNote = repository.findById(id).get();
+            editedNote.setNote(note);
+            return repository.save(editedNote);
+        } catch (Exception e) {
+            throw new NoteNotFoundException("Note not found.");
+        }
+    }
+
+    @DeleteMapping("/deleteAll")
+    public void deleteAll() {
+        for (Note n: repository.findAll()) {
+            repository.deleteById(n.getId());
+        }
     }
 }
