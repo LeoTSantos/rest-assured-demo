@@ -14,6 +14,7 @@ import java.util.regex.Pattern;
 import static io.restassured.RestAssured.delete;
 import static io.restassured.RestAssured.get;
 import static io.restassured.RestAssured.given;
+import static io.restassured.RestAssured.when;
 import static org.hamcrest.Matchers.equalTo;
 
 @SpringBootTest
@@ -31,10 +32,9 @@ public class MyNotesControllerTests {
 
     @Test
     public void getAllWithoutAddingNote_ReturnsEmpty() {
-        Response response = get(ROOT_URI);
-        System.out.println(response.asString());
-
-        response.then()
+        when()
+                .get(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(equalTo("[]"));
     }
@@ -45,17 +45,16 @@ public class MyNotesControllerTests {
         String note = "My First Note";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", note);
 
-        given().
-                contentType(ContentType.TEXT)
+        given()
+                .contentType(ContentType.TEXT)
                 .accept(ContentType.TEXT)
-                .body(note)
-                .when()
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
-        Response response = get(ROOT_URI);
-        System.out.println(response.asString());
-
-        response.then()
+        when()
+                .get(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex("\\[" + pattern + "\\]"));
     }
@@ -68,24 +67,20 @@ public class MyNotesControllerTests {
         String pattern1 = String.format(NOTE_PATTERN, "[0-9]*", note);
         String pattern2 = String.format(NOTE_PATTERN, "[0-9]*", note2);
 
-        given().
-                contentType(ContentType.TEXT)
+        given()
+                .contentType(ContentType.TEXT)
                 .accept(ContentType.TEXT)
-                .body(note)
-                .when()
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
-        given().
-                contentType(ContentType.TEXT)
+        given()
+                .contentType(ContentType.TEXT)
                 .accept(ContentType.TEXT)
-                .body(note2)
-                .when()
-                .post(ROOT_URI);
-
-        Response response = get(ROOT_URI);
-        System.out.println(response.asString());
-
-        response.then()
+                .body(note2).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex("\\[" + pattern1 + "," + pattern2 + "\\]"));
     }
@@ -98,13 +93,12 @@ public class MyNotesControllerTests {
         String note = "My First Note";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", note);
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(pattern));
     }
@@ -115,13 +109,12 @@ public class MyNotesControllerTests {
         String note = "1234567890";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", note);
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(pattern));
     }
@@ -132,13 +125,12 @@ public class MyNotesControllerTests {
         String note = "!@#$%¨&*(){}[]";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", escapeMultipleCharacters(note));
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(pattern));
     }
@@ -149,13 +141,12 @@ public class MyNotesControllerTests {
         String note = " ";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", note);
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(pattern));
     }
@@ -166,13 +157,12 @@ public class MyNotesControllerTests {
         String note = "null";
         String pattern = String.format(NOTE_PATTERN, "[0-9]*", note);
 
-        Response response = given().
+        given().
                 contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(pattern));
     }
@@ -182,13 +172,12 @@ public class MyNotesControllerTests {
 
         String note = "";
 
-        Response response = given().
+        given().
                 contentType(ContentType.TEXT)
-                .body(note)
-                .when()
-                .post(ROOT_URI);
-
-        response.then()
+                .body(note).
+        when()
+                .post(ROOT_URI).
+        then()
                 .statusCode(400);
     }
 
@@ -201,32 +190,33 @@ public class MyNotesControllerTests {
 
         Response response = given().
                 contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, note);
 
-        response = get(ROOT_URI + "/" + noteId);
-        System.out.println(response.asString());
-
-        response.then()
+        when()
+                .get(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
 
     @Test
     public void getNonExistingNote_ReturnsNotFound() {
-        Response response = get(ROOT_URI + "/1");
-        response.then()
+        when()
+                .get(ROOT_URI + "/1").
+        then()
                 .statusCode(404);
     }
 
     @Test
     public void getNoteWithInvalidId_ReturnsBadRequest() {
-        Response response = get(ROOT_URI + "/a");
-        response.then()
+        when()
+                .get(ROOT_URI + "/a").
+        then()
                 .statusCode(400);
     }
 
@@ -239,22 +229,21 @@ public class MyNotesControllerTests {
         String editedNote = "My Edited Note";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, editedNote);
 
-        response = given().
+        given().
                 contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
@@ -266,22 +255,21 @@ public class MyNotesControllerTests {
         String editedNote = "0987654321";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, editedNote);
 
-        response = given().
+        given().
                 contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
@@ -293,22 +281,21 @@ public class MyNotesControllerTests {
         String editedNote = "][}{)(*&¨%$#@!";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, escapeMultipleCharacters(editedNote));
 
-        response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
@@ -320,22 +307,21 @@ public class MyNotesControllerTests {
         String editedNote = "   ";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, editedNote);
 
-        response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
@@ -347,22 +333,21 @@ public class MyNotesControllerTests {
         String editedNote = "null";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = String.format(NOTE_PATTERN, noteId, editedNote);
 
-        response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(Matchers.matchesRegex(expected));
     }
@@ -374,21 +359,20 @@ public class MyNotesControllerTests {
         String editedNote = "";
         Gson gson = new Gson();
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+        Response response = given()
+                .contentType(ContentType.TEXT)
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
 
-        response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/" + noteId);
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(400);
     }
 
@@ -397,13 +381,12 @@ public class MyNotesControllerTests {
 
         String editedNote = "My Edited Note";
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/1");
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/1").
+        then()
                 .statusCode(404);
     }
 
@@ -412,13 +395,12 @@ public class MyNotesControllerTests {
 
         String editedNote = "My Edited Note";
 
-        Response response = given().
-                contentType(ContentType.TEXT)
-                .body(editedNote)
-                .when()
-                .put(ROOT_URI + "/a");
-
-        response.then()
+        given()
+                .contentType(ContentType.TEXT)
+                .body(editedNote).
+        when()
+                .put(ROOT_URI + "/a").
+        then()
                 .statusCode(400);
     }
 
@@ -431,32 +413,33 @@ public class MyNotesControllerTests {
 
         Response response = given().
                 contentType(ContentType.TEXT)
-                .body(note)
-                .when()
+                .body(note).
+        when()
                 .post(ROOT_URI);
 
         Long noteId = gson.fromJson(response.body().asString(), Note.class).getId();
         String expected = "\"Successfully deleted note " + noteId + "\"";
 
-        response = delete(ROOT_URI + "/" + noteId);
-        System.out.println(response.asString());
-
-        response.then()
+        when()
+                .delete(ROOT_URI + "/" + noteId).
+        then()
                 .statusCode(200)
                 .body(equalTo(expected));
     }
 
     @Test
     public void deleteNonExistingNote_ReturnsNotFound() {
-        Response response = delete(ROOT_URI + "/1");
-        response.then()
+        when()
+                .delete(ROOT_URI + "/1").
+        then()
                 .statusCode(404);
     }
 
     @Test
     public void deleteNoteWithInvalidId_ReturnsBadRequest() {
-        Response response = delete(ROOT_URI + "/a");
-        response.then()
+        when()
+                .delete(ROOT_URI + "/a").
+        then()
                 .statusCode(400);
     }
 
